@@ -20,15 +20,14 @@ function App() {
   const handleSendMessage = async (query) => {
     if (!query) return;
 
+    // User message
     setMessages(prev => [...prev, { sender: 'user', text: query }]);
     setIsLoading(true);
 
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: 'student2@example.com',
           query: query,
@@ -36,27 +35,32 @@ function App() {
         })
       });
 
-      if (!response.ok) {
-        throw new Error('API error');
-      }
+      if (!response.ok) throw new Error('API error');
 
       const data = await response.json();
 
-      setMessages(prev => [...prev, {
-        sender: 'ai',
-        text: data.message,
-        suggestions: data.suggestions
-      }]);
-    } catch (error) {
-      setMessages(prev => [...prev, {
-        sender: 'ai',
-        text: "Something went wrong while contacting the server. Please try again later.",
-        suggestions: []
-      }]);
-      console.error("API Error:", error);
-    }
+      // Wait 2 seconds before showing response
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          sender: 'ai',
+          text: data.message,
+          suggestions: data.suggestions
+        }]);
+        setIsLoading(false);
+      }, 2000);
 
-    setIsLoading(false);
+    } catch (error) {
+      console.error("API Error:", error);
+
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          sender: 'ai',
+          text: "Something went wrong while contacting the server. Please try again later.",
+          suggestions: []
+        }]);
+        setIsLoading(false);
+      }, 2000);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -115,8 +119,10 @@ const ChatMessage = ({ message, onSuggestionClick }) => {
 };
 
 const TypingIndicator = () => (
-  <div className="message ai-message typing-indicator">
-    <span></span><span></span><span></span>
+  <div className="message-container ai-container">
+    <div className="message ai-message typing-indicator">
+      <span></span><span></span><span></span>
+    </div>
   </div>
 );
 
