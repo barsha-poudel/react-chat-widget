@@ -9,7 +9,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const chatWindowRef = useRef(null);
 
-  const API_URL = 'http://52.66.8.242:8088/chat';
+ const API_URL = process.env.REACT_APP_API_URL;
+
 
   useEffect(() => {
     if (chatWindowRef.current) {
@@ -25,7 +26,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(API_URL+ "/chat", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
