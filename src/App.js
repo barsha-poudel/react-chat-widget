@@ -1,4 +1,4 @@
-import  { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 function App() {
@@ -9,29 +9,13 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const chatWindowRef = useRef(null);
 
+  const API_URL = 'http://52.66.8.242:8088/chat';
+
   useEffect(() => {
     if (chatWindowRef.current) {
       chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
     }
   }, [messages]);
-
-
-  const mockApiCall = async (query) => {
-    console.log(`Making API call for query: "${query}"`);
-    const successfulResponse = {
-      message: "Currently, the app is only available in English. But we are working on making more language options available in the future.",
-      suggestions: [
-        { id: 41, question: "Do I need internet access to use the app?" },
-        { id: 31, question: "How do I download the app on my phone or computer?" }
-      ]
-    };
-    const errorResponse = {
-      message: "Sorry, I couldn't find a good match for your query. Please try rephrasing or contact our support at support@oiedu.co.uk.",
-      suggestions: []
-    };
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return query.toLowerCase().includes("language") ? successfulResponse : errorResponse;
-  };
 
   const handleSendMessage = async (query) => {
     if (!query) return;
@@ -39,13 +23,39 @@ function App() {
     setMessages(prev => [...prev, { sender: 'user', text: query }]);
     setIsLoading(true);
 
-    const response = await mockApiCall(query);
-    
-    setMessages(prev => [...prev, {
-      sender: 'ai',
-      text: response.message,
-      suggestions: response.suggestions
-    }]);
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: 'student2@example.com',
+          query: query,
+          course_id: 'AI101'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('API error');
+      }
+
+      const data = await response.json();
+
+      setMessages(prev => [...prev, {
+        sender: 'ai',
+        text: data.message,
+        suggestions: data.suggestions
+      }]);
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        sender: 'ai',
+        text: "Something went wrong while contacting the server. Please try again later.",
+        suggestions: []
+      }]);
+      console.error("API Error:", error);
+    }
+
     setIsLoading(false);
   };
 
